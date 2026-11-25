@@ -222,6 +222,15 @@ table.checks td.score{font-weight:900;font-size:20px;min-width:64px}
 textarea.books{width:100%;min-height:230px;font-size:16px;font-weight:700;line-height:1.7;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);resize:vertical}
 .books-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:14px}
 
+/* Settings & adjustments */
+.set-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.set-grid .field input{width:100%;font-size:18px;font-weight:800;padding:8px 10px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);text-align:center}
+.set-sub{font-size:16px;font-weight:900;margin:14px 0 8px}
+table.adj{border-collapse:separate;border-spacing:6px;width:100%}
+table.adj th,table.adj td{text-align:center}
+table.adj td.tcell{text-align:left;font-weight:900;min-width:110px}
+table.adj input{width:84px;max-width:100%;font-size:17px;font-weight:800;padding:8px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);text-align:center}
+@media (max-width:560px){ table.adj input{width:64px} }
 /* Modal */
 .modal-bg{position:fixed;inset:0;background:rgba(20,10,30,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
 .modal-bg.show{display:flex}
@@ -272,6 +281,28 @@ nav.tabs{grid-template-columns:repeat(2,1fr)}
 <section class="view on" id="view-score">
 <div class="score-grid" id="scoreGrid"></div>
 <p class="note" style="margin-top:14px">チーム名とカラーはカード上で直接変更できます。手動ポイントは下のボタンで調整してください。合計は「ドボン＋利き王＋漫画当て＋手動」の自動合算です。</p>
+<div class="card" style="margin-top:18px" id="settingsCard">
+<h3 style="margin:0 0 6px">⚙ 点数設定</h3>
+<p class="note" style="margin:0 0 10px">各ゲームの配点を変更できます（変更はすぐ保存されます）。利き王・漫画当ては、すでに付けたチェックや順位の得点も即再計算されます。ドボンの配点は次に判定・確定する分から反映され、確定済みの累計は変わりません。</p>
+<div class="set-sub">💣 ドボンクイズ</div>
+<div class="set-grid">
+<div class="field"><label>通常の正解 pt</label><input type="number" data-setting="dobonNormal" /></div>
+<div class="field"><label>難問の正解 pt</label><input type="number" data-setting="dobonHard" /></div>
+<div class="field"><label>速度ボーナス pt</label><input type="number" data-setting="dobonBonus" /></div>
+</div>
+<div class="set-sub">👅 利き王</div>
+<div class="set-grid">
+<div class="field"><label>正解1つあたり pt</label><input type="number" data-setting="kikiPer" /></div>
+<div class="field"><label>ボーナス pt</label><input type="number" data-setting="kikiBonus" /></div>
+</div>
+<div class="set-sub">🔫 漫画当てガンマン（順位点）</div>
+<div class="set-grid" id="mangaRankGrid"></div>
+</div>
+<div class="card" style="margin-top:14px" id="adjCard">
+<h3 style="margin:0 0 6px">✏️ ゲーム別スコア修正</h3>
+<p class="note" style="margin:0 0 10px">獲得済みスコアの訂正用です。入れた修正値（マイナス可）がそのゲームのスコアに加算され、内訳と合計に「（修正±n）」付きで反映されます。0に戻すと修正なしになります。</p>
+<div class="table-scroll"><table class="adj"><tr><th style="text-align:left">チーム</th><th>💣 ドボン修正</th><th>👅 利き王修正</th><th>🔫 漫画当て修正</th></tr><tbody id="adjBody"></tbody></table></div>
+</div>
 </section>
 
 <!-- DISPLAY BOARD (view only) -->
@@ -306,7 +337,7 @@ nav.tabs{grid-template-columns:repeat(2,1fr)}
 <label>ジャンルを選ぶチーム</label>
 <select id="pickerSel"></select>
 </div>
-<label class="checkline"><input type="checkbox" id="hardChk" /> 難問（正解 +2pt）</label>
+<label class="checkline"><input type="checkbox" id="hardChk" /> 難問（正解 +<span id="hardPtLbl">2</span>pt）</label>
 </div>
 <p class="note" id="lastDobonNote" style="margin:0 0 10px"></p>
 
@@ -375,10 +406,10 @@ nav.tabs{grid-template-columns:repeat(2,1fr)}
 <button class="stepper" id="sMinus">−</button>
 <span class="qnum" id="sNum">5</span>
 <button class="stepper" id="sPlus">＋</button>
-<span class="note">種類 ・ 正解1つ +2pt</span>
+<span class="note">種類 ・ 正解1つ +<span id="kikiPerLbl">2</span>pt</span>
 </div>
 </div>
-<p class="note">下の表で正解したサンプルをタップすると ✓ が付きます。得点はスコアボードへ自動反映されます。全問正解などのボーナスは各チームの「ボーナス+6」ボタンで付けられます。</p>
+<p class="note">下の表で正解したサンプルをタップすると ✓ が付きます。得点はスコアボードへ自動反映されます。全問正解などのボーナスは各チームの「ボーナス」ボタンで付けられます（点数はスコアボード下の点数設定で変更できます）。</p>
 </div>
 <div class="card timer-box" style="flex:1;min-width:280px">
 <div class="note">制限時間タイマー</div>
@@ -486,7 +517,7 @@ document.addEventListener("wheel", function(e){ if(e.ctrlKey) e.preventDefault()
 
 var KEY = "gameparty-score-v1";
 var PALETTE = ["#f04438","#f79009","#12b76a","#2e90fa","#9e77ed","#ee46bc","#0e9384","#6172f3"];
-var RANK_PTS = {1:10,2:7,3:3,4:3};
+function mangaRankPt(r){ var arr=(typeof S!=="undefined"&&S&&S.settings&&S.settings.mangaRank)||[10,7,3,3,0,0,0,0]; return arr[r-1]||0; }
 var IS_STAGE_DISPLAY = /[?&#]screen=display/.test(location.search + location.hash) || location.hash === "#display";
 var IS_BOARD_DISPLAY = /[?&#]screen=board/.test(location.search + location.hash);
 var IS_DISPLAY = IS_STAGE_DISPLAY || IS_BOARD_DISPLAY;
@@ -532,6 +563,8 @@ checks.push(c); kbonus.push(false); wins.push(0); ranks.push(0);
 }
 return {
 teamCount:6, teams:teams,
+settings:{ dobonNormal:1, dobonHard:2, dobonBonus:10, kikiPer:2, kikiBonus:6, mangaRank:[10,7,3,3,0,0,0,0]},
+adj:[{dobon:0,kiki:0,manga:0},{dobon:0,kiki:0,manga:0},{dobon:0,kiki:0,manga:0},{dobon:0,kiki:0,manga:0},{dobon:0,kiki:0,manga:0},{dobon:0,kiki:0,manga:0},{dobon:0,kiki:0,manga:0},{dobon:0,kiki:0,manga:0}],
 dobon:{ qNum:1, genre:"", hard:false, picker:0, lastDobon:-1, temp:temp},
 kiki:{ samples:5, checks:checks, bonus:kbonus, timerSec:180},
 manga:{ maxPage:200, maxCol:8, drawPage:null, drawCol:null, wins:wins, ranks:ranks, upper:"", lower:""},
@@ -571,6 +604,12 @@ var _qn = parseInt(data.dobon.qNum,10); if(isNaN(_qn)||_qn<1) _qn=1; if(_qn>data
 data.dobon.qNum = _qn; data.quiz.currentId = data.quiz.questions[_qn-1].id;
 }
 }
+if(!data.settings || typeof data.settings!=="object") data.settings = d.settings;
+["dobonNormal","dobonHard","dobonBonus","kikiPer","kikiBonus"].forEach(function(kk){ if(typeof data.settings[kk]!=="number"||isNaN(data.settings[kk])) data.settings[kk]=d.settings[kk];});
+if(!Array.isArray(data.settings.mangaRank)) data.settings.mangaRank = d.settings.mangaRank.slice();
+for(var _mr=0;_mr<8;_mr++){ if(typeof data.settings.mangaRank[_mr]!=="number"||isNaN(data.settings.mangaRank[_mr])) data.settings.mangaRank[_mr]=d.settings.mangaRank[_mr];}
+if(!Array.isArray(data.adj)) data.adj = d.adj;
+for(var _ai=0;_ai<8;_ai++){ if(!data.adj[_ai]||typeof data.adj[_ai]!=="object") data.adj[_ai]={dobon:0,kiki:0,manga:0}; ["dobon","kiki","manga"].forEach(function(gk){ if(typeof data.adj[_ai][gk]!=="number"||isNaN(data.adj[_ai][gk])) data.adj[_ai][gk]=0;});}
 if(!data.stage || typeof data.stage!== "object") data.stage = d.stage;
 if(!data.stage.revealed) data.stage.revealed = {};
 if(data.quiz && data.quiz.currentId) data.stage.qid = data.quiz.currentId;
@@ -605,13 +644,18 @@ var toastTimer=null;
 function toast(msg){ var t=$("toast"); if(!t) return; t.textContent=msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove("show");},2200);}
 
 /* ===== 得点計算 ===== */
-function kikiPts(i){
+function kikiAuto(i){
 var n=0, s, smp;
 for(s=0;s<2;s++) for(smp=0;smp<S.kiki.samples;smp++) if(S.kiki.checks[i][s][smp]) n++;
-return n*2 + (S.kiki.bonus[i]?6:0);
+return n*(S.settings?S.settings.kikiPer:2) + (S.kiki.bonus[i]?(S.settings?S.settings.kikiBonus:6):0);
 }
-function mangaPts(i){ var r=S.manga.ranks[i]; return r>0? (RANK_PTS[r]||0): 0;}
-function totalPts(i){ return S.teams[i].dobon + kikiPts(i) + mangaPts(i) + S.teams[i].manual;}
+function adjOf(i,g){ return (S.adj&&S.adj[i]&&typeof S.adj[i][g]==="number")?S.adj[i][g]:0;}
+function kikiPts(i){ return kikiAuto(i)+adjOf(i,"kiki");}
+function mangaAuto(i){ var r=S.manga.ranks[i]; return r>0? mangaRankPt(r): 0;}
+function mangaPts(i){ return mangaAuto(i)+adjOf(i,"manga");}
+function dobonPts(i){ return S.teams[i].dobon + adjOf(i,"dobon");}
+function totalPts(i){ return dobonPts(i) + kikiPts(i) + mangaPts(i) + S.teams[i].manual;}
+function adjLbl(v){ return v? "（修正"+(v>0?"+":"")+v+"）": "";}
 function activeIdx(){ var a=[]; for(var i=0;i<S.teamCount;i++) a.push(i); return a;}
 function currentQuestion(){
 var qs = S.quiz.questions, i;
@@ -689,7 +733,7 @@ html += '<div class="score-card" style="background:'+esc(t.color)+'">'
 + '<div class="tname-row"><input class="tname" data-name="'+ti+'" value="'+esc(t.name)+'" maxlength="20" aria-label="チーム名" />'
 + '<input type="color" data-color="'+ti+'" value="'+esc(t.color)+'" aria-label="チームカラー" /></div>'
 + '<div class="total">'+tot+'<small> pt</small></div>'
-+ '<div class="breakdown"><span>💣 ドボン '+t.dobon+'pt</span><span>👅 利き王 '+kikiPts(ti)+'pt</span><span>🔫 漫画当て '+mangaPts(ti)+'pt</span><span>✋ 手動 '+t.manual+'pt</span></div>'
++ '<div class="breakdown"><span>💣 ドボン '+dobonPts(ti)+'pt'+adjLbl(adjOf(ti,"dobon"))+'</span><span>👅 利き王 '+kikiPts(ti)+'pt'+adjLbl(adjOf(ti,"kiki"))+'</span><span>🔫 漫画当て '+mangaPts(ti)+'pt'+adjLbl(adjOf(ti,"manga"))+'</span><span>✋ 手動 '+t.manual+'pt</span></div>'
 + '<div class="manual-row"><span class="mlbl">手動</span>'
 + '<button data-manual="'+ti+'|-5">−5</button><button data-manual="'+ti+'|-1">−1</button><button data-manual="'+ti+'|1">＋1</button><button data-manual="'+ti+'|5">＋5</button></div>'
 + '</div>';
@@ -754,6 +798,7 @@ var _pos = $("qPosNote");
 if(_pos) _pos.textContent = "全"+_qTotal+"問中 "+_qn+"問目" + (_qn>=_qTotal? "（最後の問題です）": "");
 if(document.activeElement!==$("genreInput")) $("genreInput").value = S.dobon.genre;
 $("hardChk").checked = S.dobon.hard;
+var _hl=$("hardPtLbl"); if(_hl) _hl.textContent=S.settings.dobonHard;
 var sel=$("pickerSel"), opts="";
 activeIdx().forEach(function(i){ opts+='<option value="'+i+'"'+(S.dobon.picker===i?" selected":"")+'>'+esc(S.teams[i].name)+'</option>';});
 sel.innerHTML=opts;
@@ -769,7 +814,7 @@ html += '<div class="team-box">'
 + '<div class="thead"><span class="dot" style="background:'+esc(t.color)+'"></span><span class="tname">'+esc(t.name)+'</span>'
 + '<span class="status '+tp.status+'">'+stLbl+'</span></div>'
 + '<div class="temp-pt">'+tp.points+'<small> pt（この問題）</small></div>'
-+ '<label class="bonus-line"><input type="checkbox" data-bonus="'+i+'"'+(tp.bonus?" checked":"")+(locked?" disabled":"")+' /> 速度ボーナス +10pt</label>'
++ '<label class="bonus-line"><input type="checkbox" data-bonus="'+i+'"'+(tp.bonus?" checked":"")+(locked?" disabled":"")+' /> 速度ボーナス +'+S.settings.dobonBonus+'pt</label>'
 + '<div class="op-row">'
 + '<button class="op-ok" data-op="ok|'+i+'"'+(locked?" disabled":"")+'>正解</button>'
 + '<button class="op-ng" data-op="dobon|'+i+'"'+(locked?" disabled":"")+'>ドボン</button>'
@@ -787,7 +832,7 @@ tp.points=prev.points; tp.status=prev.status; tp.bonus=prev.bonus;
 } else {
 if(tp.status!=="playing") return;
 tp.hist.push({points:tp.points,status:tp.status,bonus:tp.bonus});
-if(kind==="ok"){ tp.points += S.dobon.hard?2:1;}
+if(kind==="ok"){ tp.points += S.dobon.hard?S.settings.dobonHard:S.settings.dobonNormal;}
 else if(kind==="dobon"){ tp.points=0; tp.status="dobon"; S.dobon.lastDobon=i;}
 else if(kind==="drop"){ tp.status="drop"; if(S.stage.team===i) advanceStageTeam();}
 }
@@ -952,7 +997,7 @@ var st = S.stage, ci = st.pendingChoice, team = st.pendingTeam;
 if(ci < 0 || team < 0){ stageBusy = false; return;}
 var tp = S.dobon.temp[team];
 tp.hist.push({points:tp.points, status:tp.status, bonus:tp.bonus});
-if(result==="safe"){ tp.points += S.dobon.hard? 2: 1;}
+if(result==="safe"){ tp.points += S.dobon.hard? S.settings.dobonHard: S.settings.dobonNormal;}
 else { tp.points = 0; tp.status = "dobon"; S.dobon.lastDobon = team;}
 st.revealed[ci] = {team:team, result:result};
 st.phase = "result";
@@ -974,6 +1019,7 @@ var SUBJECTS=["🍊 オレンジジュース","🍬 グミ"];
 function renderKiki(){
 if(IS_DISPLAY) return;
 $("sNum").textContent=S.kiki.samples;
+var _kl=$("kikiPerLbl"); if(_kl) _kl.textContent=S.settings.kikiPer;
 $("sMinus").disabled=S.kiki.samples<=1;
 $("sPlus").disabled=S.kiki.samples>=10;
 if(document.activeElement!==$("tSetSec")) $("tSetSec").value=S.kiki.timerSec;
@@ -989,14 +1035,14 @@ for(var smp2=0;smp2<S.kiki.samples;smp2++){
 var hit=S.kiki.checks[i][si][smp2];
 html+='<td class="cell"><button data-check="'+i+'|'+si+'|'+smp2+'" class="'+(hit?"hit":"")+'" aria-label="正解チェック">✓</button></td>';
 }
-html+='<td class="score">'+(sub*2)+'pt</td>';
-if(si===0) html+='<td rowspan="1"><button class="bonus-toggle'+(S.kiki.bonus[i]?" on":"")+'" data-kbonus="'+i+'">ボーナス+6 '+(S.kiki.bonus[i]?"ON":"OFF")+'</button></td>';
+html+='<td class="score">'+(sub*S.settings.kikiPer)+'pt</td>';
+if(si===0) html+='<td rowspan="1"><button class="bonus-toggle'+(S.kiki.bonus[i]?" on":"")+'" data-kbonus="'+i+'">ボーナス+'+S.settings.kikiBonus+' '+(S.kiki.bonus[i]?"ON":"OFF")+'</button></td>';
 else html+='<td></td>';
 html+='</tr>';
 });
 html+='</table></div></div>';
 });
-html += '<p class="note" style="margin-top:10px">ボーナス+6 は1つ目の表の列でチームごとに切り替えます（両種目共通で1回だけ加算）。</p>';
+html += '<p class="note" style="margin-top:10px">ボーナスは1つ目の表の列でチームごとに切り替えます（両種目共通で1回だけ加算）。</p>';
 $("kikiTables").innerHTML=html;
 }
 
@@ -1020,9 +1066,9 @@ activeIdx().forEach(function(i){ var r=S.manga.ranks[i]; if(r>0){ if(seen[r]) du
 activeIdx().forEach(function(i){
 var t=S.teams[i];
 var opts='<option value="0">最終順位：未定</option>';
-for(var r=1;r<=S.teamCount;r++) opts+='<option value="'+r+'"'+(S.manga.ranks[i]===r?" selected":"")+'>'+r+'位（'+(RANK_PTS[r]||0)+'pt）</option>';
+for(var r=1;r<=S.teamCount;r++) opts+='<option value="'+r+'"'+(S.manga.ranks[i]===r?" selected":"")+'>'+r+'位（'+mangaRankPt(r)+'pt）</option>';
 html += '<div class="team-box"><div class="thead"><span class="dot" style="background:'+esc(t.color)+'"></span><span class="tname">'+esc(t.name)+'</span>'
-+ '<span class="status" style="background:#fff4e5;color:#93370d">'+mangaPts(i)+'pt</span></div>'
++ '<span class="status" style="background:#fff4e5;color:#93370d">'+mangaPts(i)+'pt'+adjLbl(adjOf(i,"manga"))+'</span></div>'
 + '<div class="win-row"><button class="stepper" data-win="'+i+'|-1">−</button><span class="win-num">'+S.manga.wins[i]+'</span><button class="stepper" data-win="'+i+'|1">＋</button><span class="note">勝</span></div>'
 + '<select class="rank-sel" data-rank="'+i+'">'+opts+'</select></div>';
 });
@@ -1032,10 +1078,42 @@ if(document.activeElement!==$("booksUpper")) $("booksUpper").value=S.manga.upper
 if(document.activeElement!==$("booksLower")) $("booksLower").value=S.manga.lower;
 }
 
+function renderSettingsAdj(){
+if(IS_DISPLAY) return;
+var card=$("settingsCard"); if(!card) return;
+card.querySelectorAll("[data-setting]").forEach(function(inp){
+if(document.activeElement!==inp) inp.value=S.settings[inp.getAttribute("data-setting")];
+});
+var mg=$("mangaRankGrid");
+if(mg){
+var mh="";
+for(var r=0;r<8;r++) mh+='<div class="field"><label>'+(r+1)+'位 pt</label><input type="number" data-mrank="'+r+'" value="'+S.settings.mangaRank[r]+'" /></div>';
+var cur=mg.querySelectorAll("[data-mrank]");
+var need = cur.length!==8;
+if(!need){ for(var q=0;q<8;q++){ if(document.activeElement!==cur[q] && +cur[q].value!==S.settings.mangaRank[q]){ need=true; break; } } }
+if(need) mg.innerHTML=mh;
+}
+var ab=$("adjBody"); if(ab){
+var ah="";
+activeIdx().forEach(function(i){
+ah+='<tr><td class="tcell"><span class="dot" style="background:'+esc(S.teams[i].color)+';display:inline-block;vertical-align:-3px;margin-right:6px"></span>'+esc(S.teams[i].name)+'</td>'
++'<td><input type="number" data-adj="'+i+'|dobon" value="'+adjOf(i,"dobon")+'" aria-label="ドボン修正" /></td>'
++'<td><input type="number" data-adj="'+i+'|kiki" value="'+adjOf(i,"kiki")+'" aria-label="利き王修正" /></td>'
++'<td><input type="number" data-adj="'+i+'|manga" value="'+adjOf(i,"manga")+'" aria-label="漫画当て修正" /></td></tr>';
+});
+var existing=ab.querySelectorAll("[data-adj]");
+var sigNow=activeIdx().map(function(i){return i;}).join(",");
+if(ab.getAttribute("data-sig")!==sigNow || document.activeElement===null || !ab.contains(document.activeElement)){
+ab.innerHTML=ah; ab.setAttribute("data-sig",sigNow);
+} else {
+existing.forEach(function(inp){ if(document.activeElement!==inp){ var pp=inp.getAttribute("data-adj").split("|"); inp.value=adjOf(+pp[0],pp[1]); }});
+}
+}
+}
 function renderAll(){
 if(IS_BOARD_DISPLAY){ renderBoard(); return;}
 if(IS_STAGE_DISPLAY){ renderStage(); return;}
-renderScore(); renderBoard(); renderDobon(); renderEditor(); renderStageControls(); renderStage(); renderKiki(); renderManga(); renderTimer();
+renderScore(); renderBoard(); renderDobon(); renderEditor(); renderStageControls(); renderStage(); renderKiki(); renderManga(); renderTimer(); renderSettingsAdj();
 }
 
 /* ===== 表示モード ===== */
@@ -1117,7 +1195,7 @@ toast("バックアップを読み込みました");
 /* スコアボード委譲 */
 $("scoreGrid").addEventListener("input",function(e){
 var n=e.target.getAttribute("data-name"), c=e.target.getAttribute("data-color");
-if(n!==null){ S.teams[+n].name=e.target.value; save(); renderBoard(); renderDobon(); renderEditor(); renderStageControls(); renderStage(); renderKiki(); renderManga();}
+if(n!==null){ S.teams[+n].name=e.target.value; save(); renderBoard(); renderDobon(); renderEditor(); renderStageControls(); renderStage(); renderKiki(); renderManga(); renderSettingsAdj();}
 if(c!==null){ S.teams[+c].color=e.target.value; save(); renderAll();}
 });
 $("scoreGrid").addEventListener("click",function(e){
@@ -1150,7 +1228,7 @@ var added=[];
 activeIdx().forEach(function(i){
 var tp=S.dobon.temp[i];
 if(tp.status!=="dobon"){
-var gain=tp.points+(tp.bonus?10:0);
+var gain=tp.points+(tp.bonus?S.settings.dobonBonus:0);
 if(gain>0){ S.teams[i].dobon+=gain; added.push(S.teams[i].name+" +"+gain+"pt");}
 }
 S.dobon.temp[i]={points:0,status:"playing",bonus:false,hist:[]};
@@ -1294,6 +1372,16 @@ S.manga.ranks[+r]=+e.target.value; save(); renderManga(); renderScore();
 });
 $("booksUpper").addEventListener("input",function(e){ S.manga.upper=e.target.value; save();});
 $("booksLower").addEventListener("input",function(e){ S.manga.lower=e.target.value; save();});
+$("settingsCard").addEventListener("input",function(e){
+var st=e.target.getAttribute("data-setting");
+if(st){ var v=parseInt(e.target.value,10); S.settings[st]=isNaN(v)?0:v; save(); renderScore(); renderBoard(); renderDobon(); renderKiki(); renderManga(); return;}
+var mr=e.target.getAttribute("data-mrank");
+if(mr!==null && mr!==undefined && e.target.hasAttribute("data-mrank")){ var v2=parseInt(e.target.value,10); S.settings.mangaRank[+mr]=isNaN(v2)?0:v2; save(); renderScore(); renderBoard(); renderManga();}
+});
+$("adjCard").addEventListener("input",function(e){
+var a=e.target.getAttribute("data-adj"); if(!a) return;
+var pp=a.split("|"); var v=parseInt(e.target.value,10); S.adj[+pp[0]][pp[1]]=isNaN(v)?0:v; save(); renderScore(); renderBoard(); renderManga();
+});
 
 renderAll();
 })();
