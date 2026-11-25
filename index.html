@@ -288,13 +288,15 @@ nav.tabs{grid-template-columns:repeat(2,1fr)}
 <h2 class="sec">💣 ドボンクイズ</h2>
 <div class="card dobon-head">
 <div class="field">
-<label>問題番号</label>
+<label>問題番号（変えるとその問題に切り替わります）</label>
 <div class="qnum-row">
 <button class="stepper" id="qMinus">−</button>
 <span class="qnum" id="qNum">1</span>
 <button class="stepper" id="qPlus">＋</button>
 <span class="note">問目</span>
 </div>
+<select id="qJumpSel" style="width:100%;font-size:16px;font-weight:800;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);margin-top:8px" aria-label="問題番号から選ぶ"></select>
+<div class="note" id="qPosNote" style="margin-top:6px"></div>
 </div>
 <div class="field">
 <label>ジャンル</label>
@@ -307,26 +309,6 @@ nav.tabs{grid-template-columns:repeat(2,1fr)}
 <label class="checkline"><input type="checkbox" id="hardChk" /> 難問（正解 +2pt）</label>
 </div>
 <p class="note" id="lastDobonNote" style="margin:0 0 10px"></p>
-
-<div class="card" style="margin-bottom:14px">
-<h3 style="margin:0 0 10px">📝 問題エディタ（後から追加・編集できます）</h3>
-<div class="field" style="margin-bottom:12px">
-<label>問題を選ぶ</label>
-<select id="qSel"></select>
-</div>
-<div class="quiz-grid">
-<div class="field"><label>ジャンル名</label><input type="text" id="qGenre" placeholder="例：野菜" /></div>
-<div class="field"><label>ドボンの選択肢番号（空欄＝未設定・後から設定可）</label><input type="number" id="qDobon" min="1" max="99" placeholder="未設定" /></div>
-</div>
-<div class="field" style="margin-top:12px"><label>お題文</label><input type="text" id="qTitle" placeholder="例：実際にある野菜の品種名を選べ" /></div>
-<div class="field" style="margin-top:12px"><label>選択肢（1行に1つ。「本文(補足)」の形もそのまま表示されます）</label><textarea class="choices" id="qChoices"></textarea></div>
-<div class="field" style="margin-top:12px"><label>メモ</label><textarea class="memo" id="qMemo"></textarea></div>
-<div class="btn-row">
-<button class="btn-accent" id="qSave">この内容で保存</button>
-<button class="btn-sub" id="qNew">＋ 新しい問題</button>
-<button class="btn-bad" id="qDelete">この問題を削除</button>
-</div>
-</div>
 
 <div class="card" style="margin-bottom:14px">
 <h3 style="margin:0 0 6px">🎬 演出コントロール</h3>
@@ -351,6 +333,27 @@ nav.tabs{grid-template-columns:repeat(2,1fr)}
 <div class="big-actions">
 <button class="btn-confirm" id="dobonConfirm">✔ この問題を確定して次へ</button>
 <button class="btn-sub" id="dobonResetQ">この問題だけリセット</button>
+</div>
+
+<div class="card" style="margin-top:22px">
+<h3 style="margin:0 0 10px">📝 問題エディタ（後から追加・編集できます）</h3>
+<p class="note" style="margin:0 0 10px">問題番号は並び順で自動で振られます（No.1〜）。番号を選ぶと、その問題が上の操作エリアと演出画面に読み込まれます。</p>
+<div class="field" style="margin-bottom:12px">
+<label>問題を選ぶ</label>
+<select id="qSel"></select>
+</div>
+<div class="quiz-grid">
+<div class="field"><label>ジャンル名</label><input type="text" id="qGenre" placeholder="例：野菜" /></div>
+<div class="field"><label>ドボンの選択肢番号（空欄＝未設定・後から設定可）</label><input type="number" id="qDobon" min="1" max="99" placeholder="未設定" /></div>
+</div>
+<div class="field" style="margin-top:12px"><label>お題文</label><input type="text" id="qTitle" placeholder="例：実際にある野菜の品種名を選べ" /></div>
+<div class="field" style="margin-top:12px"><label>選択肢（1行に1つ。「本文(補足)」の形もそのまま表示されます）</label><textarea class="choices" id="qChoices"></textarea></div>
+<div class="field" style="margin-top:12px"><label>メモ</label><textarea class="memo" id="qMemo"></textarea></div>
+<div class="btn-row">
+<button class="btn-accent" id="qSave">この内容で保存</button>
+<button class="btn-sub" id="qNew">＋ 新しい問題</button>
+<button class="btn-bad" id="qDelete">この問題を削除</button>
+</div>
 </div>
 </section>
 
@@ -450,6 +453,16 @@ nav.tabs{grid-template-columns:repeat(2,1fr)}
 </div>
 </div>
 </div>
+<div class="modal-bg" id="switchModal">
+<div class="modal">
+<h3>問題を切り替えますか？</h3>
+<p class="note" id="switchMsg">この問題には、まだ確定していない仮得点があります。切り替えると仮得点と進行状態はリセットされます。</p>
+<div class="row">
+<button class="btn-sub" id="switchCancel">やめる</button>
+<button class="btn-accent" id="switchOk">切り替える</button>
+</div>
+</div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -509,7 +522,7 @@ memo:"No.18／担当：茜"}
 function defaultStage(){ return { qid:"q-veg", team:0, phase:"idle", pendingChoice:-1, pendingTeam:-1, revealed:{}, lastResult:null, animId:0, muted:true};}
 function defaultState(){
 var teams=[], i;
-for(i=0;i<8;i++) teams.push({name:"チーム"+(i+1), color:PALETTE[i], manual:0, dobon:0});
+for(i=0;i<8;i++) teams.push({name:"チーム"+"ABCDEFGH".charAt(i), color:PALETTE[i], manual:0, dobon:0});
 var temp=[], checks=[], kbonus=[], wins=[], ranks=[];
 for(i=0;i<8;i++){
 temp.push({points:0,status:"playing",bonus:false,hist:[]});
@@ -549,10 +562,21 @@ var _seen = {}, _dedup = [];
 data.quiz.questions.forEach(function(eq){ var _key = (eq.genre||"")+"|"+(eq.title||""); if(!_seen[_key]){ _seen[_key]=true; _dedup.push(eq);}});
 data.quiz.questions = _dedup;
 }
+if(data.dobon && data.quiz && data.quiz.questions.length){
+var _qi = -1;
+data.quiz.questions.forEach(function(eq, ix){ if(eq.id===data.quiz.currentId) _qi = ix;});
+if(_qi>=0){ data.dobon.qNum = _qi+1;}
+else {
+var _qn = parseInt(data.dobon.qNum,10); if(isNaN(_qn)||_qn<1) _qn=1; if(_qn>data.quiz.questions.length) _qn=data.quiz.questions.length;
+data.dobon.qNum = _qn; data.quiz.currentId = data.quiz.questions[_qn-1].id;
+}
+}
 if(!data.stage || typeof data.stage!== "object") data.stage = d.stage;
 if(!data.stage.revealed) data.stage.revealed = {};
+if(data.quiz && data.quiz.currentId) data.stage.qid = data.quiz.currentId;
 for(var i=0;i<8;i++){
 if(!data.teams[i]) data.teams[i]=d.teams[i];
+else if(data.teams[i].name===("チーム"+(i+1))) data.teams[i].name = "チーム"+"ABCDEFGH".charAt(i);
 if(data.dobon &&!data.dobon.temp[i]) data.dobon.temp[i]=d.dobon.temp[i];
 if(data.kiki &&!data.kiki.checks[i]) data.kiki.checks[i]=d.kiki.checks[i];
 }
@@ -594,6 +618,57 @@ var qs = S.quiz.questions, i;
 for(i=0;i<qs.length;i++) if(qs[i].id===S.quiz.currentId) return qs[i];
 for(i=0;i<qs.length;i++) if(qs[i].id===S.stage.qid) return qs[i];
 return qs[0] || null;
+}
+/* ===== 問題番号（リスト順の連番）と切替 ===== */
+function qIndex(){
+var qs = S.quiz.questions, q = currentQuestion();
+if(!q) return -1;
+for(var i=0;i<qs.length;i++) if(qs[i].id===q.id) return i;
+return -1;
+}
+function qNumber(){ return qIndex()+1;}
+function hasUnconfirmedProgress(){
+for(var k=0;k<S.dobon.temp.length;k++){
+var tp = S.dobon.temp[k];
+if(tp && (tp.points!==0 || tp.status!=="playing" || tp.bonus || (tp.hist && tp.hist.length))) return true;
+}
+if(S.stage.revealed && Object.keys(S.stage.revealed).length) return true;
+if(S.stage.phase && S.stage.phase!=="idle") return true;
+return false;
+}
+function resetQuestionProgress(){
+for(var i=0;i<S.dobon.temp.length;i++) S.dobon.temp[i]={points:0,status:"playing",bonus:false,hist:[]};
+S.stage.revealed={}; S.stage.phase="idle"; S.stage.pendingChoice=-1; S.stage.pendingTeam=-1; S.stage.lastResult=null;
+if(typeof stageBusy!=="undefined") stageBusy=false;
+for(var j=0;j<S.teamCount;j++){ if(S.dobon.temp[j] && S.dobon.temp[j].status==="playing"){ S.stage.team=j; break;}}
+}
+function applyQuestion(idx){
+var qs = S.quiz.questions;
+if(!qs.length) return;
+if(idx<0) idx=0; if(idx>qs.length-1) idx=qs.length-1;
+var q = qs[idx];
+S.quiz.currentId = q.id; S.stage.qid = q.id;
+S.dobon.qNum = idx+1;
+S.dobon.genre = q.genre||"";
+resetQuestionProgress();
+editingId = null;
+save(); renderAll();
+}
+var pendingSwitchIdx = -1;
+function requestSwitch(idx){
+var qs = S.quiz.questions;
+if(!qs.length) return;
+if(idx<0) idx=0; if(idx>qs.length-1) idx=qs.length-1;
+if(idx===qIndex()){ renderAll(); return;}
+if(hasUnconfirmedProgress()){
+pendingSwitchIdx = idx;
+var msg = $("switchMsg");
+if(msg) msg.textContent = "この問題には、まだ確定していない仮得点があります。問題 No."+(idx+1)+"【"+(qs[idx].genre||"")+"】に切り替えると、仮得点と進行状態はリセットされます。";
+$("switchModal").classList.add("show");
+renderAll();
+return;
+}
+applyQuestion(idx);
 }
 
 /* ===== スコアボード ===== */
@@ -665,7 +740,18 @@ if(prev) prev.innerHTML = html;
 /* ===== ドボン（得点操作） ===== */
 function renderDobon(){
 if(IS_DISPLAY) return;
-$("qNum").textContent = S.dobon.qNum;
+var _qn = qNumber(), _qTotal = S.quiz.questions.length;
+S.dobon.qNum = _qn;
+$("qNum").textContent = _qn;
+$("qMinus").disabled = _qn<=1;
+$("qPlus").disabled = _qn>=_qTotal;
+var _jump = $("qJumpSel"), _jopts = "";
+S.quiz.questions.forEach(function(qq, ix){
+_jopts += '<option value="'+ix+'"'+(ix===_qn-1?" selected":"")+'>No.'+(ix+1)+' 【'+esc(qq.genre||"")+'】 '+esc(qq.title||"")+'</option>';
+});
+if(_jump) _jump.innerHTML = _jopts;
+var _pos = $("qPosNote");
+if(_pos) _pos.textContent = "全"+_qTotal+"問中 "+_qn+"問目" + (_qn>=_qTotal? "（最後の問題です）": "");
 if(document.activeElement!==$("genreInput")) $("genreInput").value = S.dobon.genre;
 $("hardChk").checked = S.dobon.hard;
 var sel=$("pickerSel"), opts="";
@@ -714,8 +800,8 @@ function renderEditor(){
 if(IS_DISPLAY) return;
 var q = currentQuestion();
 var sel = $("qSel"), opts = "";
-S.quiz.questions.forEach(function(qq){
-opts += '<option value="'+esc(qq.id)+'"'+(q && qq.id===q.id?" selected":"")+'>'+esc(qq.title)+'</option>';
+S.quiz.questions.forEach(function(qq, ix){
+opts += '<option value="'+esc(qq.id)+'"'+(q && qq.id===q.id?" selected":"")+'>No.'+(ix+1)+' 【'+esc(qq.genre||"")+'】 '+esc(qq.title)+'</option>';
 });
 sel.innerHTML = opts;
 if(!q) return;
@@ -751,7 +837,7 @@ html += '</div>';
 if(st.phase==="result" && st.lastResult){
 html += '<div class="stamp '+(st.lastResult.result==="safe"?"safe":"dobon")+'"><span>'+(st.lastResult.result==="safe"?"SAFE！":"💣 DOBON！")+'</span></div>';
 }
-html += '<span class="stage-genre"> 第'+S.dobon.qNum+'問'+(S.dobon.hard?" ・ 難問":"")+'</span>';
+html += '<span class="stage-genre"> 第'+qNumber()+'問'+(S.dobon.hard?" ・ 難問":"")+'</span>';
 html += '<div class="stage-title">'+esc(q.title)+'</div>';
 var cur = st.team;
 if(st.phase==="suspense" || st.phase==="judge") cur = st.pendingTeam;
@@ -1040,8 +1126,14 @@ var p=m.split("|"); S.teams[+p[0]].manual += (+p[1]); save(); renderScore();
 });
 
 /* ドボン */
-$("qMinus").addEventListener("click",function(){ if(S.dobon.qNum>1){ S.dobon.qNum--; save(); renderDobon(); renderStage();}});
-$("qPlus").addEventListener("click",function(){ S.dobon.qNum++; save(); renderDobon(); renderStage();});
+$("qMinus").addEventListener("click",function(){ requestSwitch(qIndex()-1);});
+$("qPlus").addEventListener("click",function(){ requestSwitch(qIndex()+1);});
+$("qJumpSel").addEventListener("change",function(e){ requestSwitch(+e.target.value);});
+$("switchCancel").addEventListener("click",function(){ pendingSwitchIdx=-1; $("switchModal").classList.remove("show"); renderAll();});
+$("switchOk").addEventListener("click",function(){
+$("switchModal").classList.remove("show");
+if(pendingSwitchIdx>=0){ var _t=pendingSwitchIdx; pendingSwitchIdx=-1; applyQuestion(_t);}
+});
 $("genreInput").addEventListener("input",function(e){ S.dobon.genre=e.target.value; save();});
 $("hardChk").addEventListener("change",function(e){ S.dobon.hard=e.target.checked; save(); renderStage(); renderStageControls();});
 $("pickerSel").addEventListener("change",function(e){ S.dobon.picker=+e.target.value; save();});
@@ -1064,12 +1156,26 @@ if(gain>0){ S.teams[i].dobon+=gain; added.push(S.teams[i].name+" +"+gain+"pt");}
 S.dobon.temp[i]={points:0,status:"playing",bonus:false,hist:[]};
 });
 if(S.dobon.lastDobon>=0 && S.dobon.lastDobon<S.teamCount) S.dobon.picker=S.dobon.lastDobon;
-S.dobon.qNum++; S.dobon.genre=""; S.dobon.lastDobon=-1;
+S.dobon.lastDobon=-1;
 S.stage.revealed={}; S.stage.phase="idle"; S.stage.pendingChoice=-1; S.stage.pendingTeam=-1; S.stage.lastResult=null; stageBusy=false;
-S.stage.team = nextPlayingTeam(-1 + 1) >= 0? 0: 0;
+S.stage.team = 0;
 for(var i=0;i<S.teamCount;i++){ if(S.dobon.temp[i].status==="playing"){ S.stage.team=i; break;}}
+var _ci = qIndex(), _isLast = _ci >= S.quiz.questions.length-1;
+var _msg = added.length? "確定しました！ "+added.join(" / "): "確定しました（加算なし）";
+if(!_isLast && _ci>=0){
+var _nq = S.quiz.questions[_ci+1];
+S.quiz.currentId = _nq.id; S.stage.qid = _nq.id;
+S.dobon.qNum = _ci+2;
+S.dobon.genre = _nq.genre||"";
+editingId = null;
+_msg += " → 次は No."+(_ci+2)+"【"+(_nq.genre||"")+"】です";
+} else {
+var _cq = currentQuestion();
+S.dobon.genre = _cq? (_cq.genre||""): "";
+_msg += "（最後の問題です）";
+}
 save(); renderAll();
-toast(added.length? "確定しました！ "+added.join(" / "): "確定しました（加算なし）");
+toast(_msg);
 });
 $("dobonResetQ").addEventListener("click",function(){
 activeIdx().forEach(function(i){ S.dobon.temp[i]={points:0,status:"playing",bonus:false,hist:[]};});
@@ -1079,11 +1185,9 @@ save(); renderAll(); toast("この問題の仮得点をリセットしました"
 
 /* 問題エディタ */
 $("qSel").addEventListener("change",function(e){
-S.quiz.currentId = e.target.value; S.stage.qid = e.target.value;
-S.stage.revealed={}; S.stage.phase="idle"; S.stage.pendingChoice=-1; S.stage.pendingTeam=-1; S.stage.lastResult=null;
-var q = currentQuestion(); if(q) S.dobon.genre = q.genre;
-editingId = null;
-save(); renderAll();
+var _id = e.target.value, _ix = -1;
+S.quiz.questions.forEach(function(qq, ix){ if(qq.id===_id) _ix = ix;});
+if(_ix>=0) requestSwitch(_ix); else renderAll();
 });
 $("qSave").addEventListener("click",function(){
 var q = currentQuestion(); if(!q) return;
@@ -1100,19 +1204,23 @@ save(); renderAll(); toast("問題を保存しました");
 $("qNew").addEventListener("click",function(){
 var id = "q-" + Date.now();
 S.quiz.questions.push({id:id, genre:"", title:"新しい問題", choices:["","",""], dobon:0, memo:""});
-S.quiz.currentId = id; S.stage.qid = id;
-S.stage.revealed={}; S.stage.phase="idle"; S.stage.pendingChoice=-1; S.stage.pendingTeam=-1; S.stage.lastResult=null;
-editingId = null;
-save(); renderAll(); toast("新しい問題を追加しました");
+save();
+requestSwitch(S.quiz.questions.length-1);
+toast("新しい問題 No."+S.quiz.questions.length+" を追加しました");
 });
 $("qDelete").addEventListener("click",function(){
 if(S.quiz.questions.length<=1){ toast("最後の1問は削除できません"); return;}
 var q = currentQuestion(); if(!q) return;
+var _di = qIndex();
 S.quiz.questions = S.quiz.questions.filter(function(x){ return x.id!==q.id;});
-S.quiz.currentId = S.quiz.questions[0].id; S.stage.qid = S.quiz.currentId;
-S.stage.revealed={}; S.stage.phase="idle"; S.stage.pendingChoice=-1; S.stage.pendingTeam=-1; S.stage.lastResult=null;
+var _ti = Math.min(Math.max(_di,0), S.quiz.questions.length-1);
+var _tq = S.quiz.questions[_ti];
+S.quiz.currentId = _tq.id; S.stage.qid = _tq.id;
+S.dobon.qNum = _ti+1;
+S.dobon.genre = _tq.genre||"";
+resetQuestionProgress();
 editingId = null;
-save(); renderAll(); toast("問題を削除しました");
+save(); renderAll(); toast("問題を削除しました（現在は No."+(_ti+1)+"）");
 });
 
 /* 演出コントロール */
