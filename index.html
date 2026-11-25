@@ -47,7 +47,7 @@ h1.pop{color:var(--accent)}
 .btn:active{transform:scale(.97)}
 
 /* Tabs */
-nav.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+nav.tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px}
 nav.tabs button{padding:12px 4px;font-size:clamp(12px,2.4vw,17px);background:var(--card);border:3px solid var(--line);color:var(--ink2);border-radius:16px}
 nav.tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:var(--shadow)}
 section.view{display:none}
@@ -140,7 +140,6 @@ textarea.memo{width:100%;min-height:56px;font-size:15px;font-weight:700;line-hei
 .choice-tile.dobon{background:#7a271a;border-color:#f04438;animation:tileSink.7s ease forwards;color:#ffb4a8}
 @keyframes tilePop{0%{transform:scale(.85)}55%{transform:scale(1.13)}100%{transform:scale(1)}}
 @keyframes tileSink{0%{transform:translateY(0) rotate(0)}40%{transform:translateY(4px) rotate(-2deg)}100%{transform:translateY(14px) rotate(2deg) scale(.96)}}
-.choice-tile.mark{position:absolute;top:8px;right:12px;font-size:15px;font-weight:900;border-radius:999px;padding:3px 10px;background:rgba(0,0,0,.35);color:#fff}
 .stamp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5}
 .stamp span{font-size:clamp(56px,11vw,150px);font-weight:900;padding:10px 44px;border:8px solid currentColor;border-radius:22px;transform:rotate(-8deg);animation:stampIn.5s cubic-bezier(.2,2.2,.4,1) both;background:rgba(0,0,0,.25)}
 .stamp.safe{color:#32d583}.stamp.dobon{color:#ff5d47}
@@ -158,7 +157,32 @@ textarea.memo{width:100%;min-height:56px;font-size:15px;font-weight:700;line-hei
 body.display-mode .wrap{display:none}
 #displayRoot{display:none}
 body.display-mode #displayRoot{display:block;min-height:100vh;padding:18px}
-body.display-mode{background:#17102a}
+body.display-mode.stage-mode{background:#17102a}
+body.display-mode.board-mode{background:linear-gradient(160deg,#fff7e8,#ffeef3 55%,#e6f6ff);color:#2b2135}
+body.display-mode.board-mode #displayRoot{padding:22px 18px 40px}
+
+/* Display board (cute / pastel) */
+.board-shell{max-width:1280px;margin:0 auto}
+.board-frame{background:linear-gradient(160deg,#fff7e8,#ffeef3 58%,#eaf7ff);border:3px solid #ffe0ea;border-radius:32px;padding:24px 18px 28px}
+body.display-mode.board-mode .board-frame{background:transparent;border:none;padding:0}
+.board-head{text-align:center;margin:2px 0 22px}
+.board-title{display:inline-block;background:#ffffff;border:4px solid #ffd6e0;border-radius:999px;padding:10px 34px;font-size:clamp(30px,5vw,54px);font-weight:900;color:#2b2135;box-shadow:0 10px 24px rgba(255,120,160,.18);line-height:1.2}
+.board-title .pop{color:#ff5d3a}
+.board-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.board-card{background:#ffffff;border:5px solid #f3e2ee;border-radius:36px;padding:26px 20px 28px;text-align:center;box-shadow:0 14px 30px rgba(150,80,120,.12);position:relative;overflow:hidden}
+.board-card .bar{position:absolute;top:0;left:0;right:0;height:16px}
+.board-card.rank1{background:#fffbe8;border-color:#ffd60a;box-shadow:0 16px 34px rgba(200,150,0,.22)}
+.board-card .rank{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:#fff1f5;border:2px solid #ffd6e0;color:#5b4a68;border-radius:999px;padding:6px 18px;font-size:clamp(18px,2.6vw,26px);font-weight:900}
+.board-card.rank1 .rank{background:#ffd60a;border-color:#ffd60a;color:#3a2700}
+.board-card .name{margin:14px 4px 4px;font-size:clamp(32px,4.6vw,52px);font-weight:900;line-height:1.15;color:#2b2135;word-break:break-word;display:flex;align-items:center;justify-content:center;gap:10px}
+.board-card .dotc{width:22px;height:22px;border-radius:50%;border:3px solid rgba(0,0,0,.08);flex:none}
+.board-card .score{font-size:clamp(76px,10vw,124px);font-weight:900;line-height:1.05;color:#2b2135;font-variant-numeric:tabular-nums}
+.board-card .score small{font-size:.32em;font-weight:900;color:#8a7a96;margin-left:4px}
+.board-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:0 0 16px}
+@media (max-width:560px){
+.board-grid{grid-template-columns:1fr}
+.board-card .score{font-size:84px}
+}
 @media (prefers-reduced-motion: reduce){
 .choice-tile.pending,.choice-tile.safe,.choice-tile.dobon,.stamp span,.sparkles i,.stage-frame.flash-red,.stage-frame.shake,.suspense-dots{animation-duration:.01s!important}
 }
@@ -237,6 +261,7 @@ nav.tabs{grid-template-columns:repeat(2,1fr)}
 
 <nav class="tabs">
 <button data-tab="score" class="on">🏆 スコアボード</button>
+<button data-tab="board">🌈 表示用ボード</button>
 <button data-tab="dobon">💣 ドボンクイズ</button>
 <button data-tab="stage">🎬 演出</button>
 <button data-tab="kiki">👅 利き王</button>
@@ -247,6 +272,15 @@ nav.tabs{grid-template-columns:repeat(2,1fr)}
 <section class="view on" id="view-score">
 <div class="score-grid" id="scoreGrid"></div>
 <p class="note" style="margin-top:14px">チーム名とカラーはカード上で直接変更できます。手動ポイントは下のボタンで調整してください。合計は「ドボン＋利き王＋漫画当て＋手動」の自動合算です。</p>
+</section>
+
+<!-- DISPLAY BOARD (view only) -->
+<section class="view" id="view-board">
+<div class="board-actions">
+<button class="btn-accent" id="openBoardBtn" style="padding:12px 20px;font-size:16px;border-radius:999px">🖥️ 表示用ボードを別ウィンドウで開く</button>
+</div>
+<div id="boardPreview"></div>
+<p class="note" style="margin-top:14px">表示専用です。チーム名と合計得点だけを大きく表示します。得点の変更は「🏆 スコアボード」タブや各ゲームのタブから行ってください（別ウィンドウにも自動で反映されます）。</p>
 </section>
 
 <!-- DOBON -->
@@ -440,7 +474,9 @@ document.addEventListener("wheel", function(e){ if(e.ctrlKey) e.preventDefault()
 var KEY = "gameparty-score-v1";
 var PALETTE = ["#f04438","#f79009","#12b76a","#2e90fa","#9e77ed","#ee46bc","#0e9384","#6172f3"];
 var RANK_PTS = {1:10,2:7,3:3,4:3};
-var IS_DISPLAY = /[?&#]screen=display/.test(location.search + location.hash) || location.hash === "#display";
+var IS_STAGE_DISPLAY = /[?&#]screen=display/.test(location.search + location.hash) || location.hash === "#display";
+var IS_BOARD_DISPLAY = /[?&#]screen=board/.test(location.search + location.hash);
+var IS_DISPLAY = IS_STAGE_DISPLAY || IS_BOARD_DISPLAY;
 
 function sampleQuestions(){
 return [
@@ -550,6 +586,46 @@ html += '<div class="score-card" style="background:'+esc(t.color)+'">'
 $("scoreGrid").innerHTML = html;
 }
 
+/* ===== 表示用スコアボード（チーム名と合計だけ・操作UIなし） ===== */
+function boardHTML(){
+var idx = activeIdx().slice().sort(function(a,b){ return totalPts(b)-totalPts(a);});
+var html = '<div class="board-shell"><div class="board-frame">'
++ '<div class="board-head"><span class="board-title">🏆 <span class="pop">スコアボード</span></span></div>'
++ '<div class="board-grid">';
+var prevTotal = null, prevRank = 0;
+idx.forEach(function(ti,pos){
+var tot = totalPts(ti), rank;
+if(prevTotal!==null && tot===prevTotal) rank = prevRank; else rank = pos+1;
+prevTotal = tot; prevRank = rank;
+var t = S.teams[ti];
+var crown = rank===1? "👑 ": "";
+html += '<div class="board-card'+(rank===1?" rank1":"")+'">'
++ '<span class="bar" style="background:'+esc(t.color)+'"></span>'
++ '<span class="rank">'+crown+rank+'位</span>'
++ '<div class="name"><span class="dotc" style="background:'+esc(t.color)+'"></span>'+esc(t.name)+'</div>'
++ '<div class="score">'+tot+'<small>pt</small></div>'
++ '</div>';
+});
+html += '</div></div></div>';
+return html;
+}
+function renderBoard(){
+if(IS_STAGE_DISPLAY) return;
+var html = boardHTML();
+if(IS_BOARD_DISPLAY){
+var root = $("displayRoot");
+if(!root) return;
+var sig = S.teamCount + "|" + activeIdx().map(function(i){ return S.teams[i].name + "|" + S.teams[i].color + "|" + totalPts(i); }).join("|");
+if(root.getAttribute("data-board-sig") !== sig){
+root.innerHTML = html;
+root.setAttribute("data-board-sig", sig);
+}
+return;
+}
+var prev = $("boardPreview");
+if(prev) prev.innerHTML = html;
+}
+
 /* ===== ドボン（得点操作） ===== */
 function renderDobon(){
 if(IS_DISPLAY) return;
@@ -649,11 +725,11 @@ html += '<div class="stage-team"><span class="lbl">いま解答するのは</spa
 if(st.phase==="suspense") html += '<div class="suspense-dots">・ ・ ・ ！</div>';
 html += '<div class="choice-grid">';
 (q.choices||[]).forEach(function(ch, ci){
-var cls = "choice-tile", mark = "";
+var cls = "choice-tile";
 var rev = st.revealed[ci];
-if(rev){ cls += rev.result==="safe"? " safe": " dobon"; mark = '<span class="mark">'+(rev.result==="safe"?"SAFE":"DOBON")+' ・ '+esc(S.teams[rev.team]? S.teams[rev.team].name: "")+'</span>';}
+if(rev){ cls += rev.result==="safe"? " safe": " dobon";}
 else if((st.phase==="suspense"||st.phase==="judge") && st.pendingChoice===ci){ cls += " pending";}
-html += '<div class="'+cls+'"><span class="no">'+(ci+1)+'</span><span>'+esc(ch)+'</span>'+mark+'</div>';
+html += '<div class="'+cls+'"><span class="no">'+(ci+1)+'</span><span>'+esc(ch)+'</span></div>';
 });
 html += '</div>';
 html += '<div class="stage-teams">';
@@ -668,8 +744,9 @@ return html;
 }
 var lastAnimRendered = -1;
 function renderStage(){
+if(IS_BOARD_DISPLAY) return;
 var html = stageHTML();
-if(IS_DISPLAY){
+if(IS_STAGE_DISPLAY){
 var root = $("displayRoot");
 var sig = S.stage.phase + "|" + JSON.stringify(S.stage.revealed) + "|" + S.stage.team + "|" + S.dobon.qNum + "|" + S.stage.animId + "|" +
 activeIdx().map(function(i){ var tp=S.dobon.temp[i]; return tp.points + tp.status; }).join(",");
@@ -834,15 +911,17 @@ if(document.activeElement!==$("booksLower")) $("booksLower").value=S.manga.lower
 }
 
 function renderAll(){
-if(IS_DISPLAY){ renderStage(); return;}
-renderScore(); renderDobon(); renderEditor(); renderStageControls(); renderStage(); renderKiki(); renderManga(); renderTimer();
+if(IS_BOARD_DISPLAY){ renderBoard(); return;}
+if(IS_STAGE_DISPLAY){ renderStage(); return;}
+renderScore(); renderBoard(); renderDobon(); renderEditor(); renderStageControls(); renderStage(); renderKiki(); renderManga(); renderTimer();
 }
 
 /* ===== 表示モード ===== */
 if(IS_DISPLAY){
 document.body.classList.add("display-mode");
-document.title = "ドボンクイズ 演出画面";
-renderStage();
+document.body.classList.add(IS_BOARD_DISPLAY? "board-mode": "stage-mode");
+document.title = IS_BOARD_DISPLAY? "スコアボード（表示用）": "ドボンクイズ 演出画面";
+if(IS_BOARD_DISPLAY) renderBoard(); else renderStage();
 return;
 }
 
@@ -854,6 +933,7 @@ document.querySelectorAll("section.view").forEach(function(x){x.classList.remove
 b.classList.add("on"); $("view-"+b.getAttribute("data-tab")).classList.add("on");
 window.scrollTo({top:0});
 if(b.getAttribute("data-tab")==="stage") renderStage();
+if(b.getAttribute("data-tab")==="board") renderBoard();
 });
 });
 $("tcMinus").addEventListener("click",function(){ if(S.teamCount>1){ S.teamCount--; if(S.stage.team>=S.teamCount) S.stage.team=0; save(); renderAll();}});
@@ -915,7 +995,7 @@ toast("バックアップを読み込みました");
 /* スコアボード委譲 */
 $("scoreGrid").addEventListener("input",function(e){
 var n=e.target.getAttribute("data-name"), c=e.target.getAttribute("data-color");
-if(n!==null){ S.teams[+n].name=e.target.value; save(); renderDobon(); renderEditor(); renderStageControls(); renderStage(); renderKiki(); renderManga();}
+if(n!==null){ S.teams[+n].name=e.target.value; save(); renderBoard(); renderDobon(); renderEditor(); renderStageControls(); renderStage(); renderKiki(); renderManga();}
 if(c!==null){ S.teams[+c].color=e.target.value; save(); renderAll();}
 });
 $("scoreGrid").addEventListener("click",function(e){
@@ -1004,6 +1084,11 @@ $("openDisplayBtn").addEventListener("click",function(){
 var url = location.href.split("#")[0];
 url += (url.indexOf("?")>=0? "&": "?") + "screen=display";
 window.open(url, "dobon-display", "width=1280,height=800");
+});
+$("openBoardBtn").addEventListener("click",function(){
+var url = location.href.split("#")[0];
+url += (url.indexOf("?")>=0? "&": "?") + "screen=board";
+window.open(url, "score-board-display", "width=1280,height=800");
 });
 $("muteBtn").addEventListener("click",function(){ S.stage.muted =!S.stage.muted; save(); renderStageControls();});
 $("stageResetBtn").addEventListener("click",function(){
